@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Health World - Maringá</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .filtro {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 8px;
+      width: 60%;
+      font-size: 16px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      width: 250px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .livre { background-color: #d1fae5; }
+    .médio { background-color: #fef9c3; }
+    .superlotado { background-color: #fecaca; }
+    canvas {
+      display: block;
+      margin: 40px auto;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Health World - Maringá</h1>
+
+  <div class="filtro">
+    <input type="text" id="busca" placeholder="Buscar hospital..." onkeyup="filtrar()">
+  </div>
+
+  <div class="container" id="lista"></div>
+
+  <canvas id="graficoBarras"></canvas>
+
+  <script>
+    const hospitais = [
+      { nome: "Hospital Municipal", tipo: "Público", status: "livre" },
+      { nome: "Santa Casa Maringá", tipo: "Privado", status: "superlotado" },
+      { nome: "Hospital Universitário", tipo: "Público", status: "médio" },
+      { nome: "Hospital São Paulo", tipo: "Privado", status: "médio" },
+      { nome: "Clínica Vida", tipo: "Privado", status: "livre" }
+    ];
+
+    let grafico;
+
+    function render(lista) {
+      const container = document.getElementById('lista');
+      container.innerHTML = "";
+      lista.forEach(h => {
+        const card = document.createElement('div');
+        card.className = `card ${h.status}`;
+        card.innerHTML = `
+          <h2>${h.nome}</h2>
+          <p>Tipo: ${h.tipo}</p>
+          <strong>Status: ${h.status}</strong>
+        `;
+        container.appendChild(card);
+      });
+      atualizarGrafico(lista);
+    }
+
+    function filtrar() {
+      const termo = document.getElementById('busca').value.toLowerCase();
+      const filtrados = hospitais.filter(h =>
+        h.nome.toLowerCase().includes(termo)
+      );
+      render(filtrados);
+    }
+
+    function atualizarGrafico(lista) {
+      const contagem = { livre: 0, médio: 0, superlotado: 0 };
+      lista.forEach(h => contagem[h.status]++);
+
+      const ctx = document.getElementById('graficoBarras').getContext('2d');
+      if (grafico) grafico.destroy();
+      grafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Livre', 'Médio', 'Superlotado'],
+          datasets: [{
+            label: 'Hospitais por Status',
+            data: [contagem.livre, contagem.médio, contagem.superlotado],
+            backgroundColor: ['#34d399', '#facc15', '#f87171']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: 'Distribuição dos Hospitais'
+            }
+          }
+        }
+      });
+    }
+
+    render(hospitais);
+  </script>
+
+</body>
+</html>
